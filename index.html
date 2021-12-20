@@ -8,7 +8,7 @@
 	<link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-	<div id="app">
+	<div id="app" ref="app">
 		<transition name="fade">
 			<div class="alert" v-show="alerted" v-html="message"></div>
 		</transition>
@@ -321,8 +321,8 @@
 			<div>
 				<button @click="save">save</button>
 				<button @click="confirmToDelete = true">delete saved data</button>
-				<button @click="importData" >import</button>
-				<button @click="isExporting = true">export</button>
+				<button @click="importData" >export</button>
+				<button @click="isExporting = true">import</button>
 
 				<div v-if="confirmToDelete" class="p-3">
 					<h1>Are you sure?</h1>
@@ -396,6 +396,7 @@
 		<audio src="audio/click.wav" ref="click" id="click"></audio>
 		<button class="mute-btn" onclick="mute('m', document.getElementById('bgm'))" title="Toggle the music">M</button>
 		<button class="mute-sound-btn" onclick="mute('s')" title="Toggle the sound">S</button>
+		<button class="new-window-btn" onclick="openNewWindow()" title="Open a new window">W</button>
 	</div>
 
 	<script type="text/javascript" src="scripts/vue.min.js"></script>

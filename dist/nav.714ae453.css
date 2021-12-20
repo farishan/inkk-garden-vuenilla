@@ -1,0 +1,48 @@
+.nav {
+	/*border: 1px solid #eee;*/
+	position: relative;
+	padding: .5rem;
+}
+
+.nav p {
+	margin: .5rem 0 0 0;
+}
+
+.nav-cookies {
+	position: absolute;
+	top: .5rem;
+	right: .5rem;
+	display: flex;
+	align-items: center;
+	margin-top: 7px;
+}
+
+.nav-cookies img {
+	width: 20px;
+}
+
+.nav-time {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	text-align: center;
+	z-index: -1;
+}
+
+.nav-btn {
+	padding: 0;
+	background-color: rgba(0,0,0,0);
+	border: none;
+	cursor: pointer;
+}
+
+.nav-btn img {
+	border: 1px solid rgba(0,0,0,0);
+}
+
+.nav-btn img.active {
+	border: 1px solid rgba(0,0,0,1);
+}
+
+/*# sourceMappingURL=/nav.714ae453.css.map */

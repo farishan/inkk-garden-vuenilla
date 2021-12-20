@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Inkk Garden</title>
+	<link rel="stylesheet" href="./normalize.b6182ef6.css">
+	<link rel="stylesheet" href="./nav.714ae453.css">
+	<link rel="stylesheet" href="./main.d2070829.css">
+<script src="./normalize.b6182ef6.js"></script><script src="./nav.714ae453.js"></script><script src="./main.d2070829.js"></script></head>
+<body>
+	<div id="app">
+		<transition name="fade">
+			<div class="alert" v-show="alerted" v-html="message"></div>
+		</transition>
+		
+		<!-- Nav -->
+		<div class="nav" v-show="page!='main-menu'">
+			<!-- <button class="nav-btn" @click="page = 'garden'">
+				<img draggable="false" src="assets/nav_garden.png" alt="Garden" title="Garden"v-bind:class="page=='garden' ? 'active' : 'not-active'">
+			</button> -->
+			<!-- <button class="nav-btn" @click="page = 'shop'">
+				<img draggable="false" src="assets/nav_shop.png" alt="Shop" title="Shop" v-bind:class="page=='shop' ? 'active' : 'not-active'">
+			</button> -->
+			<button class="nav-btn" @click="page = 'achievement'">
+				<img draggable="false" src="./nav_achievement.0e7d1aa7.png" alt="Achievement" title="Achievement" v-bind:class="page=='achievement' ? 'active' : 'not-active'">
+			</button>
+			<!-- <button class="nav-btn" @click="page = 'info'">
+				<img draggable="false" src="assets/nav_stats.png" alt="Stats" title="Data" v-bind:class="page=='info' ? 'active' : 'not-active'">
+			</button> -->
+			<button class="nav-btn" @click="save">
+				<img draggable="false" src="./nav_save.1bb96961.png" alt="Save" title="Save Game">
+			</button>
+			<span class="nav-cookies" title="Your Cookies (Currency)">
+				<transition name="fade">
+					<small class="nav-cookie-bubble" v-if="isBubbling" style="margin-right: 3px">{{cookieChange}}</small>
+				</transition>
+				<span style="margin-right: 5px;">{{player.cookies | format}}</span>
+				<img src="./cookie.ba90ff97.png" alt="C">
+			</span>
+			<p class="nav-time">
+				<span style="display: block; margin-bottom: 4px">Day {{player.day}}</span>
+				<span>
+					<span v-if="player.period == 'day'"><img src="./sun.8377c53e.png" alt="Day"></span>
+					<span v-if="player.period == 'night'"><img src="./moon.bdc28cbf.png" alt="Night"></span>
+				</span>
+			</p>
+		</div>
+
+		<div class="action-tooltip" v-show="selectingAction" ref="actionTooltip">
+			<div v-if="selectedSlot.plant">
+				<h3>{{selectedSlot.plant.name}}</h3>
+				<small>ID: {{selectedSlot.plant.id}}</small>
+				<br>
+				<small>Age: {{player.day - selectedSlot.plant.bought_at.day}} days</small>
+				<br>
+				<small>Stage: 
+					<span v-if="selectedSlot.plant.stage===0">seedling</span>
+					<span v-if="selectedSlot.plant.stage===1">budding</span>
+					<span v-if="selectedSlot.plant.stage===2">producing</span>
+				</small>
+				<br>
+				<small>Progress: 
+					<span v-if="selectedSlot.plant.progress==100"><b>100% | RIPE</b></span>
+					<span v-else="">{{selectedSlot.plant.progress}}%</span>
+				</small>
+				<br>
+				<small>Water: 
+					<span v-if="selectedSlot.plant.water==0"><b>0% | NEED WATER!</b></span>
+					<span v-else="">{{selectedSlot.plant | percent}}%</span>
+				</small>
+				<br>
+				<small v-if="selectedSlot.plant.water==0"><b>Dead after: {{selectedSlot.plant.health}} days</b></small>
+				<small v-if="selectedSlot.plant.ready"><b>Cookies rot within: {{selectedSlot.plant.cookie_health}} days</b></small>
+			</div>
+			<hr>
+			<div>
+				<button @click="sell(selectedSlot)">sell</button> <small class="text-muted" v-if="selectedSlot.plant">for {{selectedSlot.plant.price | sellCut}} C</small>
+			</div>
+		</div>
+
+		<div class="page text-center" v-show="page == 'main-menu'">
+			<img class="logo" src="./logo.e9a9c890.png" alt="INKK GARDEN" draggable="false">
+			<div>
+				<button class="play-btn" @click="startGame">play</button>
+			</div>
+		</div>
+
+		<div class="page" v-show="page == 'garden'">
+			<!-- Slots -->
+			<div class="slots" ref="slots" @click="slotsClickHandler">
+				<!-- Collector -->
+				<div class="collector" v-if="player.collector" ref="collector" title="Don't touch me!" @click="toggleCollector">
+					<img src="./cookie_imp.80678066.png" alt="Cookie Imp" draggable="false" v-if="player.auto_collecting">
+					<img src="./cookie_imp_eating.689e6ca9.png" alt="Cookie Imp" draggable="false" v-if="!player.auto_collecting">
+				</div>
+
+				<!-- Sprinkler -->
+				<div class="sprinkler" title="Water Sprinkler" v-if="player.sprinkler && player.auto_watering && player.plants.length!=0"></div>
+				<div class="sprinkler off" title="Water Sprinkler" v-if="player.sprinkler && !player.auto_watering && player.plants.length!=0"></div>
+
+				<!-- If no plants -->
+				<template v-if="player.plants.length==0">
+					no plants.
+				</template>
+
+				<!-- Plants -->
+				<template v-else="" v-for="(slot,key) in slots">
+					<div class="slot" :key="key" :id="'slot_'+key" v-on:drop="slotDropHandler($event)" ondragover="allowDrop(event)" @click="slotClickHandler(key, slot)">
+						<div v-if="slot && slot!=='clicked'" class="pot" draggable="true" ondragstart="potDragStartHandler(event)" :id="slot.id+'_'+key" @click="potClickHandler($event, slot, key)" v-on:mouseover="playAudio('hover')">
+
+							<span v-if="!slot.ready && !slot.dry">
+								{{slot.name}}
+								<span v-if="slot.stage===0"> Seed</span>
+								<span v-if="slot.stage===1"> Bud</span>
+							</span>
+							<span v-if="slot.dry">
+								<div class="health-bar" v-bind:style="{width: slot.health/slot.default_health*100 + '%'}"></div>
+								<small class="water-alert"><b>need water!</b></small>
+							</span>
+							
+							<span v-show="slot.ready">
+								<div class="cookie-health-bar" v-bind:style="{width: slot.cookie_health/slot.default_cookie_health*100 + '%'}"></div>
+								<button class="collect-btn" @click="collecting($event, slot, key); selectingAction = false; player.manual_collect++">collect</button>
+							</span>
+							<!-- {{slot.progress}} {{slot.ready}} -->
+
+							<!-- Render Image by stage -->
+							<div class="img-wrapper" style="background-image: url('/seed.81880feb.png')" v-if="slot.stage==0"></div>
+							<div class="img-wrapper" v-bind:style="{ 'background-image': 'url('+slot.image_bud+')'}" v-if="slot.stage==1"></div>
+							<div class="img-wrapper" v-bind:style="{ 'background-image': 'url('+slot.image+')'}" v-if="slot.stage==2"></div>
+
+							<div class="progress-bar" v-bind:style="{width: slot.progress<100 ? slot.progress + '%' : '100%'}"></div>
+
+							<div class="water-bar" v-bind:style="{width: slot.water/slot.water_capacity*100 + '%'}"></div>
+						</div>
+
+						<div :key="key" v-else="" v-on:drop="slotDropHandler($event)" ondragover="allowDrop(event)">
+						</div>
+
+					</div>
+				</template>
+			</div>
+			
+			<!-- Watering Cans -->
+			<div class="watering-cans" v-if="player.plants.length!=0">
+				<div class="watering-can" @click="getWateringCan('standard')" ref="wateringCan" v-if="player.watering_can=='standard'" title="Get watering can">
+					<img src="./watering_can.16e2f995.png" alt="Watering Can" draggable="false">
+				</div>
+				<div class="watering-can" @click="getWateringCan('inked')" ref="inkedWateringCan" v-if="player.watering_can=='inked'" title="Get watering can">
+					<img src="./inked_watering_can.99e17aea.png" alt="Inked Watering Can" draggable="false">
+				</div>
+				<div class="watering-can toggle-sprinkler" @click="toggleSprinkler" v-if="player.sprinkler" title="Toggle sprinkler"> 
+					<span v-if="player.auto_watering">
+						<img src="./water_sprinkler.26e9fd34.png" alt="Turn Off Sprinkler">
+					</span>
+					<span v-else="">
+						<img src="./water_sprinkler_off.71ce461d.png" alt="Turn On Sprinkler">
+					</span>
+				</div>
+
+				<div class="watering-can done" v-if="isWatering" @click="stopWatering(player.watering_can)" draggable="false">
+					&#10004;
+				</div>
+			</div>
+
+			<button class="bottom-center-btn" @click="page = 'shop'" title="Let's say hello to Uncle Chrupip">go to Uncle Chrupip's</button>
+
+			<!-- Logs -->
+			<!-- <div class="logs">{{collectingList.length}}</div> -->
+		</div>
+
+		<div class="page" v-show="page == 'shop'"> <!--  -->
+			<div>
+				<h3 style="display: inline-block;" title="Hello again!">|Uncle Chrupip's| - Gardening Tools and Supplies</h3>
+				<!-- <h3 style="display: inline-block;" class="text-muted">Discount of this weeks: Plant X | -30%</h3> -->
+			</div>
+			<div class="shop-categories">
+				<div class="shop-category">
+					<h4 style="margin-left: 7px;">Seeds</h4>
+					<div class="shop-plants" title="A Seed.">
+						<p><small class="text-muted" v-if="player.plants.length==(8*4)">*your garden is full ({{player.plants.length}}/{{8*4}})</small></p>
+						<div class="shop-plant" v-for="plant in plants" @click="showDetail(plant)">
+							{{plant.name}} Seed<br>
+							<div class="img-wrapper"></div>
+							<div class="price">
+								{{plant.price}} C <br>
+							</div>
+							<button @click="buy(plant, $event)" :disabled="player.plants.length!=(8*4) ? false : true">buy
+							</button>
+						</div>
+					</div>
+				</div>
+				<div class="shop-category">
+					<h4>Non-Seeds</h4>
+					<div class="shop-item" @click="selectedShopItem = 'imp'" title="*Ku' Chippi bites your pinky finger">
+						<h4>Ku' Chippi</h4>
+						<img src="./cookie_imp.80678066.png" alt="Cookie Imp" draggable="false">
+						<p>5000 C</p>
+						<div v-if="!player.collector"><button @click="buy('cookie-imp', $event)">hire</button></div>
+						<button disabled="" v-else="">hired</button>
+					</div>
+					<div class="shop-item" @click="selectedShopItem = 'box'" title="Hmm..">
+						<h4>Mystery Box</h4>
+						<img src="./mystery_box.a4017279.png" alt="Mystery Box" draggable="false">
+						<p>??? C</p>
+						<button @click="buy('mystery-box')" disabled="" title="coming soon">buy</button>
+					</div>
+
+					<br>
+
+					<h4>Upgrades</h4>
+					<div class="shop-item" @click="selectedShopItem = 'inked'" title="Inked Watering Can, with clear-and-normal water inside.">
+						<h4>Inked Watering Can</h4>
+						<img src="./inked_watering_can.99e17aea.png" alt="Inked Watering Can" draggable="false">
+						<p>5000 C</p>
+						<div v-if="player.watering_can!='inked' && player.watering_can!='sprinkler'"><button @click="buy('inked-watering-can')">buy</button></div>
+						<button disabled="" v-else="">bought</button>
+					</div>
+					<div class="shop-item" @click="selectedShopItem = 'sprinkler'" title="a little water spurted from it">
+						<h4>Inkk Sprinkler</h4>5/plant
+						<img src="./water_sprinkler.26e9fd34.png" alt="Water Sprinkler" draggable="false">
+						<p>10000 C</p>
+						<div v-if="!player.auto_watering"><button @click="buy('water-sprinkler')">buy</button></div>
+						<button disabled="" v-else="">bought</button>
+					</div>
+				</div>
+				
+				<div class="shop-item-detail" v-bind:class="selectedShopItem ? 'show' : 'hide'">
+					<button class="close-btn" @click="selectedShopItem = null">&times;</button>
+					<div v-if="selectedShopItem == 'inked'">
+						<h3>Inked Watering Can</h3>
+						<p>Just watering can, but all black. You can watering multiple plants with this. Try it out! (if you have enough cookies) </p>
+						
+						<p>Watering cost: {{inkedCost}} C/plant</p>
+						<p>Price: 5000 C</p>
+						<div v-if="player.watering_can != 'inked'"><button @click="buy('inked-watering-can')">buy</button></div>
+						<button disabled="" v-else="">bought</button>
+					</div>
+					<div v-if="selectedShopItem == 'sprinkler'">
+						<h3>Inkk Sprinkler</h3>
+						<p>The best way to always keep your plant with enough water is planting a sprinkler. Plant this in your garden, and just watch while eating cookies!</p>
+						
+						<p>Watering cost: {{autoCost}} C/plant/day</p>
+						<p>Price: 10000 C</p>
+						<div v-if="!player.sprinkler"><button @click="buy('water-sprinkler')">buy</button></div>
+						<button disabled="" v-else="">bought</button>
+					</div>
+					<div v-if="selectedShopItem == 'imp'">
+						<h3>Ku' Chippi</h3>
+						<p>This small creature is an Imp who likes to collect and eat cookies from plants. You can hire this 'lil-cookie-eater' to collect cookies for you, with some remuneration.</p>
+						<p>Needs: <ul>
+							<li>Idling: 1 C/day</li>
+							<li>Working: 5% of collected cookies</li>
+						</ul></p>
+						<p>Price: 5000 C</p>
+						<div v-if="!player.collector"><button @click="buy('cookie-imp')">buy</button></div>
+						<button disabled="" v-else="">bought</button>
+					</div>
+					<div v-if="selectedShopItem == 'box'">
+						<h3>Mystery Box</h3>
+						<p>A box. with a little mystery.</p>
+						
+						<p>Price: ??? C</p>
+						<button disabled="" title="You can never buy this. I mean it.">buy</button>
+					</div>
+				</div>
+				
+				<div class="plant-detail" v-bind:class="selectedPlant ? 'show' : 'hide'">
+					<button class="close-btn" @click="selectedPlant = null">&times;</button>
+					<div v-if="selectedPlant">
+						<h3>{{selectedPlant.name}}</h3>
+						<p>{{selectedPlant.desc}}</p>
+						<p>Daily Growth: {{selectedPlant.daily_growth}}</p>
+						<p>Water Capacity: {{selectedPlant.water_capacity}}</p>
+						<p>{{selectedPlant.price}} C</p>
+						<button @click="buy(selectedPlant)">buy</button>
+					</div>
+				</div>
+			</div>
+			<button class="bottom-center-btn" @click="page = 'garden'" title="I miss my plants...">back to my garden</button>
+		</div>
+
+		<div class="page" v-show="page == 'achievement'">
+			<h1>Achievement</h1>
+			<ul>
+				<li v-bind:class="player.manual_watering < 100 ? 'text-muted' : 'text-success'"><b>Sprinkler</b> - Manual Watering 100x (current: {{player.manual_watering}})</li>
+				<li v-bind:class="player.manual_collect < 100 ? 'text-muted' : 'text-success'"><b>Collector</b> - Manual Collecting 100x (current: {{player.manual_collect}})</li>
+				<li v-bind:class="player.plants.length < 32 ? 'text-muted' : 'text-success'"><b>Gardener</b> - Have {{8*4}} plants</li>
+				<li v-bind:class="player.shop_visited < 100 ? 'text-muted' : 'text-success'"><b>Shopper</b> - Visit Uncle Chrupip 100x (current: {{player.shop_visited}})</li>
+				<li v-bind:class="player.dead_plants.length < 100 ? 'text-muted' : 'text-success'"><b>Killer</b> - 100 dead plants (current dead plants: {{player.dead_plants.length}})</li>
+				<li v-bind:class="player.day < 1000 ? 'text-muted' : 'text-success'"><b>Legend</b> - Gardening for 1000 days</li>
+				<li v-bind:class="player.cookies < 1000000 ? 'text-muted' : 'text-success'"><b>Millionaire</b> - Have a million cookies</li>
+				<li v-bind:class="!player.got_all_achievement ? 'text-muted' : 'text-success'"><b>Achiever</b> - Have all achievements</li>
+			</ul>
+
+			<hr>
+
+			<div>
+				<button @click="save">save</button>
+				<button @click="confirmToDelete = true">delete saved data</button>
+				<button @click="importData">import</button>
+				<button @click="isExporting = true">export</button>
+
+				<div v-if="confirmToDelete" class="p-3">
+					<h1>Are you sure?</h1>
+					<button @click="confirmToDelete = false">Nooo!</button>
+					<button @click="deleteSavedData">yes.</button>
+				</div>
+
+				<div v-show="isImported">
+					<hr>
+					<textarea class="imported-data" id="importedData" v-model="importedData"></textarea>
+					<p>click copy button and paste anywhere you feel safe</p>
+					<button @click="copyImportedData">copy</button>
+				</div>
+
+				<div v-show="isExporting">
+					<hr>
+					<p>paste your data here and click export</p>
+					<textarea v-model="exportedData"></textarea>
+					<button @click="exportData">export</button>
+				</div>
+			</div>
+			<button class="bottom-center-btn" @click="page = 'garden'" title="I miss my plants...">back to my garden</button>
+		</div>
+
+		<div class="page" v-show="page == 'info'">
+			<h1>Data</h1>
+			<!-- <table>
+				<tbody>
+					<tr>
+						<td>Name</td>
+						<td>:</td>
+						<td>{{player.name}}</td>
+					</tr>
+					<tr>
+						<td>Cookies</td>
+						<td>:</td>
+						<td>{{player.cookies}} C</td>
+					</tr>
+					<tr>
+						<td>Plants</td>
+						<td>:</td>
+						<td>{{player.plants.length}}</td>
+					</tr>
+				</tbody>
+			</table> -->
+
+			<hr>
+
+			<button @click="save">save</button>
+			<button @click="deleteSavedData">delete saved data</button>
+			<button @click="importData">import</button>
+			<button @click="isExporting = true">export</button>
+			<div v-show="isImported">
+				<hr>
+				<textarea class="imported-data" id="importedData" v-model="importedData"></textarea>
+				<p>click copy button and paste anywhere you feel safe</p>
+				<button @click="copyImportedData">copy</button>
+			</div>
+
+			<div v-show="isExporting">
+				<hr>
+				<p>paste your data here and click export</p>
+				<textarea v-model="exportedData"></textarea>
+				<button @click="exportData">export</button>
+			</div>
+			<button class="bottom-center-btn" @click="page = 'garden'" title="I miss my plants...">back to my garden</button>
+		</div>
+
+		<audio src="./bgm.4a3de0d6.wav" ref="bgm" id="bgm" autoplay="" loop=""></audio>
+		<audio src="./hover.bd65b2ab.wav" ref="hover" id="hover"></audio>
+		<audio src="./click.e583fe21.wav" ref="click" id="click"></audio>
+		<button class="mute-btn" onclick="mute('m', document.getElementById('bgm'))" title="Toggle the music">M</button>
+		<button class="mute-sound-btn" onclick="mute('s')" title="Toggle the sound">S</button>
+	</div>
+
+	<script type="text/javascript" src="./vue.min.1ee69711.js"></script>
+	<script type="text/javascript" src="./plants.89a166f1.js"></script>
+	<script type="text/javascript" src="./module.b2873701.js"></script>
+	<script type="text/javascript" src="./slots.ee6762d4.js"></script>
+	<script type="text/javascript" src="./player.e4d2ddf8.js"></script>
+	<script type="text/javascript" src="./main.d8ebb8d6.js"></script>
+	<!-- <script type="text/javascript" src="dist/main.js"></script> -->
+</body>
+</html>

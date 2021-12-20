@@ -796,3 +796,16 @@ function mute(target, data){
 		}
 	}
 }
+
+function openNewWindow(){
+	window.open(window.location.href,'targetWindow',
+                                   `toolbar=no,
+                                    location=no,
+                                    status=no,
+                                    menubar=no,
+                                    scrollbars=yes,
+                                    resizable=yes,
+                                    width=802,
+                                    height=602`);
+ return false;
+}

@@ -1,0 +1,440 @@
+:root {
+	--cubic : 0.5s cubic-bezier(.02,1.23,.79,1.08);
+	--red : #ed193a;
+	--black : #3d3d3d;
+	--grey : #e6e6e6;
+	--blue : #01c0eb;
+	--green : #66ef55;
+}
+
+#app {
+	display: none;
+	max-height: 600px;
+	/*overflow: hidden;*/
+}
+
+.alert {
+	border: 1px solid;
+	position: fixed;
+	left: 50%;
+	transform: translateX(-50%);
+	top: 0;
+	z-index: 999;
+	background-color: var(--black);
+	color: #fff;
+	padding: 1rem;
+}
+
+.logo {
+	margin-top: 70px;
+}
+
+.play-btn {
+	background-image: url(/play_button.9907498e.png);
+	-webkit-background-size: 100%;
+	background-size: 100%;
+	background-repeat: no-repeat;
+	background-color: rgba(0,0,0,0);
+	border: none;
+	cursor: pointer;
+	width: 100px;
+	height: 50px;
+	margin-top: 50px;
+	animation: heartbeat 1s ease-in-out infinite;
+}
+
+.play-btn:active {
+	animation: none;
+	transform: scale(0.75);
+}
+
+.mute-btn {
+	position: absolute;
+	bottom: .5rem;
+	right: .5rem;
+}
+
+.mute-sound-btn {
+	position: absolute;
+	bottom: .5rem;
+	right: 34px;
+}
+
+.bottom-center-btn {
+	position: absolute;
+	left: 50%;
+	bottom: .5rem;
+	transform: translateX(-50%) !important;
+}
+
+.collect-btn {
+	position: absolute;
+	z-index: 9;
+	right: 0;
+	bottom: 0;
+	width: 100%;
+}
+
+.page {
+	padding: .5rem;
+}
+
+.page h1 {
+	margin-top: 0;
+}
+
+.slots {
+	/*border: 1px solid var(--grey);*/
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-around;
+	align-items: center;
+	/*padding: 0 1rem;*/
+	position: relative;
+	width: 89%;
+	margin: auto;
+	margin-top: 2.25rem;
+	/*justify-content: flex-start;*/
+}
+
+.slot {
+	width: 70px;
+	height: 70px;
+	border: 1px solid var(--grey);
+	cursor: pointer;
+	margin: .5rem;
+	position: relative;
+}
+
+.slot img {
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+
+.slot button:active {
+	transform: none;
+}
+
+.slot .img-wrapper{
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	background-image: url('/seed.81880feb.png');
+	animation: animate 1s steps(4) infinite;
+}
+
+.slot .progress-bar {
+	background-color: var(--green);
+	height: 2px;
+	width: 0%;
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	z-index: 5;
+	transition: var(--cubic);
+}
+
+.slot .water-bar {
+	background-color: var(--blue);
+	height: 2px;
+	width: 0%;
+	position: absolute;
+	bottom: 2px;
+	left: 0;
+	z-index: 5;
+	transition: var(--cubic);
+}
+
+.slot .health-bar {
+	background-color: var(--red);
+	height: 2px;
+	width: 0%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 5;
+	transition: var(--cubic);
+}
+
+.slot .cookie-health-bar {
+	background-color: var(--black);
+	height: 2px;
+	width: 0%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 5;
+	transition: var(--cubic);
+}
+
+.water-alert {
+	animation: blink 1s ease-in-out;
+	animation-iteration-count: infinite;
+	background-color: var(--black);
+	color: #fff;
+	position: absolute;
+	left: 0;
+	width: 100%;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 3;
+	text-align: center;
+	padding: .25rem 0;
+}
+
+.pot {
+	width: 60px;
+	height: 60px;
+	margin: auto;
+	font-size: 0.8em;
+	/*border: 1px solid orange;*/
+}
+
+.nav-cookie-bubble {
+	background-color: var(--black);
+	color: #fff;
+	padding: .2rem;
+}
+
+.cookie-bubble {
+	position: absolute;
+	right: -10px;
+	top: -10px;
+	/*background-color: var(--black);*/
+	/*color: #fff;*/
+	/*border: 1px solid var(--grey);*/
+	color: #000;
+	background-color: #fff;
+	animation: bubble .2s ease-in-out;
+	padding: .2rem;
+	font-size: 1.2em;
+	font-weight: 700;
+}
+
+.sprinkler, .sprinkler:before, .sprinkler:after {
+	background-image: url('/water_sprinkler.26e9fd34.png');
+	animation: sprinkler 1s ease-in-out infinite;
+}
+
+.sprinkler.off, .sprinkler.off:before, .sprinkler.off:after {
+	background-image: url('/water_sprinkler_off.71ce461d.png');
+	animation: none;
+}
+
+.sprinkler, .sprinkler.off {
+	width: 20px;
+	height: 20px;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 3;
+	-webkit-background-size: 100%;
+	background-size: 100%;
+}
+
+.sprinkler:before, .sprinkler:after,
+.sprinkler.off:before, .sprinkler.off:after {
+	content: '';
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	top: 50%;
+	transform: translate(0%, -50%);
+	z-index: 3;
+	-webkit-background-size: 100%;
+	background-size: 100%;
+}
+
+.sprinkler:before, .sprinkler.off:before {
+	left:  -173px;
+}
+
+.sprinkler:after, .sprinkler.off:after {
+	left:  173px;
+}
+
+.action-tooltip {
+	padding: .25rem;
+	z-index: 10;
+	border: 2px solid;
+	background-color: #fff;
+	position:absolute;
+	transform:translate3d(-50%,-50%,0);
+	/*transition:transform 0.2s cubic-bezier(.02,1.23,.79,1.08);*/
+}
+
+.watering-can {
+	position: absolute;
+	left: .5rem;
+	bottom: .5rem;
+	border: 1px dashed var(--grey);
+	background-color: #fff;
+	width: 50px;
+	height: 50px;
+	cursor: pointer;
+	z-index: 12;
+}
+
+.watering-can.toggle-sprinkler {
+	left: 66px;
+}
+
+.watering-can.done {
+	font-size: 2em;
+	text-align: center;
+	padding-top: .5rem;
+}
+
+.collector {
+	position: absolute;
+	right: 5px;
+	top: -50px;
+	cursor: pointer;
+}
+
+.shop-categories {
+	display: flex;
+	justify-content: space-between;
+}
+
+.shop-category {
+	/*border: 1px solid var(--grey);*/
+	padding: .5rem;
+	width: 400px;
+	max-height: 487px;
+}
+
+.shop-item {
+	border: 2px solid #ddd;
+	display: inline-block;
+	font-size: 0.9em;
+	height: auto;
+	padding: .5rem;
+	width: 150px;
+	text-align: center;
+	cursor: pointer;
+}
+
+.shop-plants {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	overflow-y: scroll;
+	max-height: 90%;
+}
+
+.shop-plant {
+	border: 2px solid #ddd;
+	display: inline-block;
+	font-size: 0.8em;
+	margin: .25rem;
+	padding: .5rem;
+	width: 150px;
+	text-align: center;
+	max-width: 80px;
+	cursor: pointer;
+}
+
+.shop-plant .img-wrapper {
+	width: 30px;
+	height: 30px;
+	margin: .5rem auto;
+	background-image: url('/seed.8e0642a6.png');
+}
+
+.shop-plant .price {
+	border: 1px solid var(--grey);
+	margin: .5rem 0;
+}
+
+.plant-detail {
+	position: absolute;
+	right: 0;
+	background-color: #fff;
+	width: 400px;
+	height: 80%;
+	border: 1px solid #eee;
+	padding: 1rem;
+	transition: .2s ease-in-out;
+}
+
+.shop-item-detail {
+	position: absolute;
+	background-color: #fff;
+	width: 400px;
+	height: 80%;
+	border: 1px solid #eee;
+	padding: 1rem;
+	transition: .2s var(--cubic);
+}
+
+.shop-item-detail.hide {
+	left: -399px;
+}
+
+.shop-item-detail.show {
+	left: 0;
+}
+
+.plant-detail.hide {
+	left: -800px;
+}
+
+.plant-detail.show {
+	left: 399px;
+}
+
+.close-btn {
+	position: absolute;
+	right: 1rem;
+	top: 1rem;
+}
+
+.imported-data {
+	max-width: 100%;
+	max-height: 200px;
+	overflow-y: scroll;
+}
+
+@keyframes spin {
+	0% {transform: rotate(0deg)}
+	/*50% {transform: rotate(180deg)}*/
+	100% {transform: rotate(360deg)}
+}
+
+@keyframes sprinkler {
+	0% {top: 50%;}
+	50% {top: 49.5%;}
+	100% {top: 50%;}
+}
+
+@keyframes blink {
+	0% {opacity: 1}
+	25% {opacity: 1}
+	50% {opacity: 0}
+	75% {opacity: 1}
+	100% {opacity: 1}
+}
+
+@keyframes heartbeat {
+	0% {transform: scale(1)}
+	25% {transform: scale(1.05)}
+	50% {transform: scale(1)}
+	100% {transform: scale(1)}
+}
+
+@keyframes animate {
+	from {background-position: 0 0;}
+	to {background-position: -280px 0}
+}
+
+@keyframes bubble {
+	from {top: 5px;}
+	to {top: -5px;}
+}
+
+/*# sourceMappingURL=/main.d2070829.css.map */
